@@ -115,3 +115,11 @@ npm test
 ```
 npm test:coverage
 ```
+
+## Module Dependecies
+
+|             NPM            | Version |
+|:--------------------------:|:-------:|
+| axios                      | ^0.24.0 |
+| http-status-codes          | ^2.1.4  |
+| mongoose                   | ^17.0.2 |
