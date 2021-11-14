@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import app from "../app";
-// Private modules
 import { IHorseEvents } from "../interfaces/horseEventInterface";
 
 const horseEventSchema = new mongoose.Schema({
@@ -18,5 +17,5 @@ const horseEventSchema = new mongoose.Schema({
   },
 });
 
-// finally export the model
+// Export the model
 export const HorseEventModel = app.getMongoose().model<IHorseEvents>("HorseEvent", horseEventSchema);

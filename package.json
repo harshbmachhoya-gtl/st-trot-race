@@ -1,12 +1,13 @@
 {
-  "name": "st-demo",
+  "name": "st-trot-race",
   "version": "1.0.0",
   "main": "server.ts",
-  "author": "Harsh",
+  "author": "Harsh Machhoya",
   "license": "MIT",
   "scripts": {
     "start": "nodemon ./src/server.ts",
     "test": "jest",
+    "test:coverage": "jest --coverage",
     "lint": "eslint --ext .ts"
   },
   "devDependencies": {

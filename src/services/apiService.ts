@@ -1,17 +1,15 @@
-import axios from "axios";
 import { StatusCodes } from "http-status-codes";
-import { IHorseEvents } from "../interfaces/horseEventInterface";
+import { API } from "../config/constants";
+import { IApiParams } from "../interfaces/apiParamInterface";
+import { IAuth } from "../interfaces/authInterface";
+import { IAuthResponse } from "../interfaces/authResponseInterface";
+import { IEventResponse } from "../interfaces/eventResponseInterface";
 import { HorseEventModel } from "../models/horseEventModel";
-
-export interface IEventResponse {
-  status: number;
-  data: IHorseEvents;
-}
-
-const simulatorUrl: string = process.env.API_ROOT || "";
+import CommonRestAPI from "./commonRestAPI";
 
 class ApiService {
-  token: string = "";
+  token = "";
+  callAPI = new CommonRestAPI().callAPI;
 
   constructor(_token: string) {
     this.token = _token;
@@ -20,18 +18,21 @@ class ApiService {
   // User authentication and return token
   async authenticateUser(): Promise<string> {
     try {
-      const result = await axios.post(
-        simulatorUrl + "/auth",
-        {
-          email: process.env.API_EMAIL,
-          password: process.env.API_PASSWORD,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const userCredentials: IAuth = {
+        email: process.env.API_EMAIL || "",
+        password: process.env.API_PASSWORD || "",
+      };
+      const { endpoint, method, header } = API.AuthToken;
+      const paramaters: IApiParams = {
+        endPoints: endpoint,
+        params: userCredentials,
+        method: method,
+        token: "",
+        header: header,
+      };
+
+      const result: IAuthResponse = await this.callAPI(paramaters);
+
       console.log("Token recieved: \n" + result.data.token);
       this.token = result.data.token;
     } catch (err) {
@@ -40,10 +41,10 @@ class ApiService {
     return this.token;
   }
 
-  // Fetches real-time events
+  // Fetche real-time events
   async getEvents(): Promise<IEventResponse> {
     const eventResponse: IEventResponse = {
-      status: StatusCodes.OK,
+      status: StatusCodes.NO_CONTENT,
       data: {
         event: "",
         horse: { id: 0, name: "" },
@@ -51,17 +52,22 @@ class ApiService {
       },
     };
 
-    const options = {
-      headers: {
-        Authorization: "Bearer " + this.token,
-        "Content-Type": "application/json",
-      },
-    };
-
     try {
-      const result = await axios.get(simulatorUrl + "/results", options);
-      if (result.status === 200) {
+      const { endpoint, method, header } = API.Results;
+      const paramaters: IApiParams = {
+        endPoints: endpoint,
+        method: method,
+        token: this.token,
+        header: {
+          ...header,
+          Authorization: "Bearer " + this.token,
+        },
+      };
+      const result: IEventResponse = await this.callAPI(paramaters);
+      console.log("Event API result:\n", result.status, result.data);
+      if (result.status === StatusCodes.OK) {
         eventResponse.data = result.data;
+        eventResponse.status = result.status;
         console.log("Event received");
       } else if (result.status === StatusCodes.UNAUTHORIZED) {
         eventResponse.status = result.status;
@@ -85,10 +91,11 @@ class ApiService {
     return eventResponse;
   }
 
+  // Process events
   async processEvents(): Promise<IEventResponse> {
     console.log("getEvents calling");
     const eventResponse: IEventResponse = await this.getEvents();
-    console.log(eventResponse);
+    console.log("eventResponse code:", eventResponse.status);
     if (eventResponse.status === StatusCodes.OK) {
       const eventModel = new HorseEventModel({
         event: eventResponse.data.event,

@@ -1,11 +1,10 @@
 import { Application } from "express";
-import bodyParser from "body-parser";
 import cors from "cors";
 import express from "express";
 import { Worker } from "worker_threads";
 import path from "path";
 import mongoose from "mongoose";
-import config from "./db/config";
+import config from "./config/dbConfig";
 
 class App {
   public app: Application;
@@ -16,6 +15,7 @@ class App {
     this.connectDB();
   }
 
+  // Set common servers configuration
   private setConfig() {
     // Allows us to receive requests with data in json format
     this.app.use(express.json());
@@ -29,10 +29,12 @@ class App {
     this.app.use(cors());
   }
 
+  // Get mongoose object
   getMongoose() {
     return mongoose;
   }
 
+  // Connect to Mongo DB
   async connectDB() {
     try {
       return await mongoose
@@ -50,12 +52,13 @@ class App {
     }
   }
 
+  // Close Mongo DB connection
   closeConnection() {
     mongoose.connection.close();
   }
 
+  // Worker thread initialization
   initiateApp() {
-    // Worker thread
     const worker = new Worker(path.resolve(__dirname, "./services/worker.js"), {
       workerData: {
         path: "./raceService.ts",

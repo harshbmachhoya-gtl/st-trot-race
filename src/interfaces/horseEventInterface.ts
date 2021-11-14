@@ -1,4 +1,4 @@
-// Horse Events Data Interface
+// Horse events data interface
 export interface IHorseEvents {
   event: string;
   horse: { id: number; name: string };
